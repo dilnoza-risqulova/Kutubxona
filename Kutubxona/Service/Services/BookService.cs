@@ -27,6 +27,7 @@ public class BookService : IBookService
             _id = books.LastOrDefault().Id + 1;
         }
     }
+
     public async Task<BookResultDto> CreateAsync(BookCreationDto dto)
     {
         var book = repository.
