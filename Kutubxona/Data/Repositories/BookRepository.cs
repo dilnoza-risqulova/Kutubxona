@@ -10,16 +10,24 @@ public class BookRepository : IBookRepository
     public BookRepository()
     {
         this.path = BookPathHelper.BookPath;
+        var txt=File.ReadAllText(path);
+        if (string.IsNullOrEmpty(txt))
+        {
+            File.WriteAllText(path, "[]");
+        }
     }
-    public Task<bool> DropAsync(int id)
+    public async Task<bool> DropAsync(int id)
     {
         throw new NotImplementedException();
     }
 
     public async Task<Book> InsertAsync(Book book)
     {
-        var text = $"{book.Id}|{book.Title}|{book.Author}|{book.Year}|{book.UpdatedAt}|{book.CreatedAt}\n";
-        File.AppendAllText(path, text);
+        List<Book> books = SelectAllAsync().Result.ToList;
+        books.Add(book);
+        
+        var json = JsonConvert.SerializeObject(books, Formatting.Indented);
+        await File.WriteAllTextAsync(path, json);
 
         return book;
     }
@@ -31,29 +39,10 @@ public class BookRepository : IBookRepository
 
     public async Task<IEnumerable<Book>> SelectAllAsync()
     {
-        var books = File.ReadAllLines(path);
-        var ls = new List<Book>();
+        var text = await File.ReadAllTextAsync(path);
+        var books = JsonConvert.DeserializeObject<Enumerable<BookRepository>>(text);
 
-        foreach (var item in books)
-        {
-            if (string.IsNullOrEmpty(item))
-                continue;
-
-            var bookline = item.Split("|");
-
-            var book = new Book
-            {
-                Id = int.Parse(bookline[0]),
-                Title = bookline[1],
-                Author = bookline[2],
-                Year = int.Parse(bookline[3]),
-                UpdatedAt = DateTime.Parse(bookline[4]),
-                CreatedAt = DateTime.Parse(bookline[5])
-            };
-
-            ls.Add(book);
-        }
-        return ls;
+        return book;
     }
 
     public Task<Book> SelectByAsync(int id)

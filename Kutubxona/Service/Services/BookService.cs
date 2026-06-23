@@ -4,46 +4,30 @@ using Kutubxona.Domain.Entities;
 using Kutubxona.Service.DTOs;
 using Kutubxona.Service.Exceptions;
 using Kutubxona.Service.Interfaces;
+using Kutubxona.Service.Services;
 
 namespace Kutubxona.Service.Services;
 
 public class BookService : IBookService
 {
-    IBookRepository repository;
-    private int _id;
-
-    public BookService()
-    {
-        repository = new BookRepository();
-
-        var books = repository.SelectAllAsync().Result.ToList();
-
-        if (books.Count == 0)
-        {
-            _id = 1;
-        }
-        else
-        {
-            _id = books.LastOrDefault().Id + 1;
-        }
-    }
+    IBookRepository repository=new BookRepository;
+    private int _id=1;
 
     public async Task<BookResultDto> CreateAsync(BookCreationDto dto)
     {
-        var book = repository.
-        SelectAllAsync().
-        Result.
-        FirstOrDefault(x => x.Author == dto.Author &&
-        x.Title == dto.Title);
+        var book = await repository.SelectAllAsync().
+       
+        var book = BookService.FirstOrDefault(x=> x.Author == dto.Author);
+        x.Title == dto.Title};
 
-        if (book is null)
+        if (book is not null)
         {
             throw new CustomException("This book already exist", 404);
         }
 
         var newBook = new Book
         {
-            Id = _id,
+            Id = _id++,
             Author = dto.Author,
             Title = dto.Title,
             Year = dto.Year,
@@ -66,9 +50,23 @@ public class BookService : IBookService
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<BookResultDto>> GetAllAsync()
+    public async Task<IEnumerable<BookResultDto>> GetAllAsync()
     {
-        throw new NotImplementedException();
+    var books = await repository.SelectAllAsync();
+    var ls = new List<BookResultDto>();
+        
+    foreach (var book in books)
+    {
+        var resBook = new BookReaultDto
+        {
+            Id = book.Id,
+            Author = book.Author,
+            Title = book.Title,
+            Year = book.Rear
+        };
+        ls.Add(resBook);
+    }
+    return ls;
     }
 
     public Task<BookResultDto> GetByIdAsync(int id)
